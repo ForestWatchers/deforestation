@@ -1,0 +1,98 @@
+<div class="row">
+    <div class="span12">
+        <div id="modal" class="modal hide fade">
+            <div class="modal-header">
+                <h3>Deforestation tutorial</h3>
+            </div>
+            <div id="0" class="modal-body" style="display:none">
+               <p><strong>Hi!</strong> So you have decided to <strong>help us to find new deforested areas in the forest</strong>, Great!!
+               </p> 
+               <p>In the following steps you will learn how you can help us by simply marking deforested areas when you find them.</p>
+            </div>
+            <div id="1" class="modal-body" style="display:none">
+                <p>In this application <strong>you will get one tile</strong> that has been previously selected by you, the community, as the best satellite image for the area.</p>
+                <p>The goal: <strong>mark deforested areas</strong> if any.</p>
+                <p>In some tiles you will be able to identify clearly the <strong>brown</strong> areas that usually represent <strong>deforested areas</strong> like in the following photo.</p>
+                <p>In other cases it will be more complicated and you will have to take a decision.</p>
+                <img src="http://img96.imageshack.us/img96/571/deforestedthumb.png" class="img-polaroid" style="width:30%"/>
+                <p><span class="label label-warning"><i class="icon-bullhorn"></i> Tip: </span> Difficult tiles will usually have some comments, check the footer of the page to get more feedback.</p>
+            </div>
+            <div id="2" class="modal-body" style="display:none">
+                <p>When <strong>you find an area</strong> that you think it is deforested, you can <strong>mark it</strong> by using the <strong>Polygon</strong> tool that you can find in the <strong>black toolbar</strong></p>
+                <img src="http://imageshack.us/a/img248/7946/toolbarpolygon.png"/>
+                <p>Then, draw one or more <strong>polygons</strong> covering the area like in this image:</p>
+                <img src="http://imageshack.us/a/img29/8446/polygon.png" class="img-polaroid"/>
+                <p>
+                <span class="label label-info"><i class="icon-bullhorn"></i> Tip:</span> You can close the polygon by <i>double clicking</i>.
+                </p>
+                <p>
+                <span class="label label-warning"><i class="icon-bullhorn"></i> Info:</span> Click in the <strong>Navigation button</strong> to browse the map again.
+                </p>
+            </div>
+
+            <div id="3" class="modal-body" style="display:none">
+                <p>Sometimes you will find areas that you don't know if they are deforested or not, or areas that could be <strong>interesting</strong> to review by the experts.</p>
+                <p>In these cases, you can use the <strong>point</strong> tool
+                <img src="http://imageshack.us/a/img822/268/toolbarpoint.png"/>
+
+                <img src="http://imageshack.us/a/img850/8657/pointg.png" class="img-polaroid" style="float:right;"/>
+                <p>Then, click in the zone to place a <strong>blue</strong> marker that you think it is interesting for later review.
+                <br/>
+                <span class="label label-warning"><i class="icon-bullhorn"></i> Info:</span> Click in the Navigation button to browse the map again.
+                </p>
+                <p>
+                </p>
+            </div>
+
+            <div id="4" class="modal-body" style="display:none">
+                <p><strong>That's all!!</strong> But before you start marking deforested areas, you should know that we will show in some tiles <i>orange, pink or blue</i> areas representing respectively:
+                <ul>
+                    <li><strong>Orange</strong>: Indigenous area in the tile,</li>
+                    <li><strong>Pink</strong>: Conservation area in the tile,</li>
+                    <li><strong>Hydrography</strong>: Rivers, lakes, etc. in the tile.</li>
+                </ul>
+                </p>
+
+                <img src="http://img208.imageshack.us/img208/390/layersg.png" style="width:40%; float:right;"/>
+                <p>The goal is to help you to distinguish water (sometimes look like deforested areas) and to know if the deforestation is happening in <i>indigenous and/or conservation areas</i>.
+                </p>
+                <p>
+                <span class="label label-warning"><i class="icon-bullhorn"></i> Info:</span> You can disable them if you want for the current tile, by clicking in <i>layers button</i>. 
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <a id="prevBtn" href="#" onclick="showStep('prev')" class="btn">Previous</a>
+                <a id="nextBtn" href="#" onclick="showStep('next')" class="btn btn-success">Next</a>
+                <a id="startContrib" href="../deforestedareas/newtask" class="btn btn-primary" style="display:none"><i class="icon-thumbs-up"></i> Start contributing!</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var step = -1;
+    function showStep(action) {
+        $("#" + step).hide();
+        if (action == 'next') {
+            step = step + 1;
+        }
+        if (action == 'prev') {
+            step = step - 1;
+        }
+        if (step == 0) {
+            $("#prevBtn").hide();
+        }
+        else {
+            $("#prevBtn").show();
+        }
+
+        if (step == 4 ) {
+            $("#nextBtn").hide();
+            $("#startContrib").show();
+        }
+        $("#" + step).show();
+    }
+
+    showStep('next');
+    $("#modal").modal('show');
+</script>

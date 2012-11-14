@@ -1,0 +1,538 @@
+<! -- Fix for Bootstrap css with Google Maps https://github.com/twitter/bootstrap/issues/1552 -->
+<style type="text/css">
+    #map_canvas label {
+        width: auto;
+        display: inline;
+    }
+    #map_canvas img {
+        max-width: none;
+    }
+
+    #loading{
+        position:absolute;
+        z-index: 10000;
+        width: 100%;
+        height: 100%;
+        margin-top: 0px;
+        margin-left: 0px;
+        background-color: rgba(255,255,255,1);
+    }
+
+    #facts {
+        position: relative;
+        margin-top:200px;
+    }
+
+    .layersDiv label {
+        color: white;
+    }
+</style>
+
+<div id="loading" style="display:none">
+      <div class="row">
+          <div class="span12">
+              <div id="facts" class="alert alert-info">
+                  Loading task...
+              </div>
+              <div class="progress progress-striped">
+                 <div id="bar" class="bar" style="width: 0%;"></div>
+              </div>
+          </div>
+      </div>
+</div>
+
+<div class="row">
+  <!-- Success and Error Messages for the user --> 
+  <!-- Question, task id, photo and action buttons for answering the question-->
+  <div class="span12">
+    <div id="success" class="alert alert-success" style="display:none;">
+      <a class="close">×</a>
+      <strong>Well done!</strong> Your answer has been saved</strong>
+    </div>
+    <div id="finish" class="alert alert-success" style="display:none;">
+      <strong>Congratulations!</strong> All the tasks have been completed!</strong>
+      <br/>
+      <div class="alert-actions">
+              <a class="btn small" href="/">Go back</a>
+              <a class="btn small" href="/app">or, Check other applications</a>
+      </div>
+    </div>
+    <div id="error" class="alert alert-error" style="display:none;">
+      <a class="close">×</a>
+      <strong>Error!</strong> Something went wrong, please contact the site administrators</strong>
+    </div>
+    <div id="warning" class="alert alert-warning" style="display:none;">
+      <a class="close">×</a>
+      <strong>Oooops!</strong> Tile not found, trying with a new one!</strong>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+    <div class="span4">
+      <div id="map_canvas" style="width: 295px; height: 595px;">
+      </div>
+      <div style="font-size:10px;">Marker Icons by <a href="http://mapicons.nicolasmollet.com/">Nicolas Mollet</a></div>
+    </div>
+    <div id="answer" class="skeleton span7">
+      <div id="question">
+          <h1>Question</h1>
+          <p>When you find a deforested area, use the black toolbar to mark it. You can draw polygons or add points of interest to be reviewed.</p>
+          <p>You are working on task: <span id="task-id" class="label label-warning"></span>
+          <a href="../tutorial" class="btn btn-primary pull-right" style="margin-left:-15px;">Tutorial</a>
+          </p>
+          <hr>
+          <div class="well well-small">
+          <h4>Legend</h4>
+          <div class="row">
+              <div class="span2">
+                <strong>Indigenous Areas</strong>
+              </div>
+              <div class="span2" style="background-color:rgb(166,75,0); width:30px;height:14px;margin-top:2px;margin-left:-3px;">&nbsp;</div>
+          </div>
+          <div class="row">
+              <div class="span2">
+                <strong>Conservation Areas</strong>
+              </div>
+              <div class="span2" style="background-color:rgb(133,0,75); width:30px;height:14px;margin-top:2px;margin-left:-3px;">&nbsp;</div>
+          </div>
+          <div class="row">
+              <div class="span2">
+                <strong>Hydrography</strong>
+              </div>
+              <div class="span2" style="background-color:steelblue; width:30px;height:14px;margin-top:2px;margin-left:-3px;">&nbsp;</div>
+          </div>
+          </div>
+          <h4>Your progress</h4>
+          <p><strong>You have covered</strong> until now <strong><span id="km"></span> km<sup>2</sup>of forest</strong></p>
+          <p>And your <strong>covered area</strong> has been <strong>taking <span id="co2"></span> CO2 grams per km<sup>2</sup></strong></p>
+          <p style="font-size:10px"><a href="http://earthobservatory.nasa.gov/Features/BOREASCarbon/missing_carbon_2.php">Ratio based on this NASA article</a></p>
+          <div class="progress progress-striped">
+              <div id="progress" rel="tooltip" title="#" class="bar" style="width: 0%;"></div>
+          </div>
+          <span class="label label-warning"><i class="icon icon-bullhorn"></i> Tip</span> You can take a break whenever you want!
+          <hr>
+      </div>
+      <div id="controls" class="btn-group" data-toggle="buttons-radio" style="padding-bottom:5px;">
+        <button id="navigate" class="btn btn-inverse active" onClick="toggleControl('navigate');">
+          <i class="icon icon-white icon-move"></i> Navigate
+        </button>
+        <button id="polygon"  class="btn btn-inverse" onClick="toggleControl('polygon');">
+          <i class="icon icon-white icon-map-marker"></i> Polygon
+        </button>
+        <!-- <button id="polygon"  class="btn btn-inverse" onClick="toggleControl('path');">
+          <i class="icon icon-white icon-pencil"></i> Line-->
+        </button>
+        <button id="point"    class="btn btn-inverse" onClick="toggleControl('point');">
+          <i class="icon icon-white icon-flag"></i> Point
+        </button>
+      </div>
+      <button id="answerbtn" class="btn btn-success" style="display:none"><i class="icon-check icon-white"></i> Save these the polygons or points</button>
+        <!--<button class="btn" onclick="pybossa.newTask('deforestedareas', 'http://forestwatchers.net/pybossa').done(function(data) {loadData(data)})">Try another area</button>-->
+        <button class="btn" onclick='submitTask("no-deforestation")'><i class="icon icon-thumbs-up"></i> I do not see deforestation, give me another one!</button>
+    </div>
+</div>
+<div class="row">
+    <hr>
+    <div id="disqus_thread" class="span12"></div>
+</div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'forestwatchers'; // required: replace example with your forum shortname
+    //var disqus_developer = 1;
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+
+<script src="http://d3js.org/d3.v2.js"></script>
+<script src="/static/openlayers/OpenLayers.js"></script>
+<script src="/static/js/pybossa/pybossa.js" type="text/javascript"></script>
+<!-- PyBossa interface -->
+<script>
+// Map Server URL
+var rasterLayer = 'map=/home/forestwatchers/map/maps2012.map';
+var infoLayer = 'map=/home/forestwatchers/map/infoshapes.map';
+var server = "http://forestwatchers.net/cgi-bin/mapserv?";
+// Map Bounds
+//var bounds = new OpenLayers.Bounds(
+//     -57.739609289016386, -12.430917501000005,
+//     -53.554929289016385, -8.710952501000005
+//)
+// Map options
+var options = {
+    //maxExtent: bounds,
+    //maxResolution: 0.0163,
+    //projection: "EPSG:4326",
+    allowOverlays: true,
+    numZoomLevels: 3
+    //units: 'degrees'
+}
+// Map for loading the markers and placing them
+var map = null;
+// OpenLayers point variable to save the lon & lat
+var point;
+// Layer for placing markers. This layer allows drag & drop
+var answerLayer;
+// Draw controls
+var drawControls = { };
+// Area per tile (km2)
+var totalArea = 2071105.5827344113;
+// CO2 grams per meter see: http://earthobservatory.nasa.gov/Features/BOREASCarbon/missing_carbon_2.php
+// grams per square meter
+var coTwo = 30 * 1; 
+// As we measure in km:
+coTwo = coTwo * 1000;
+
+//var boxes  = new OpenLayers.Layer.Boxes( "Limits of the tile" );
+
+var step = 0;
+var steps = 2;
+
+function updateBar(fact) {
+    if (step < steps) {
+        step = step + 1;
+    }
+    if (fact != null) {
+        $("#facts").html(fact);
+    }
+    pct = Math.floor(( step*100 )/steps);
+    if (pct >= 100) {
+        $("#facts").html("Task loaded!");
+        $("#loading").delay(2000).fadeOut(400);
+    }
+    $("#bar").css("width", pct + "%");
+}
+
+$("#loading").show();
+
+// This function creates the map, the layers, and sets up the map
+function initialize() {
+
+    map = new OpenLayers.Map('map_canvas', {
+        controls: [
+            new OpenLayers.Control.Navigation(),
+            new OpenLayers.Control.PanZoomBar(),
+            new OpenLayers.Control.LayerSwitcher({roundedCornerColor: 'black'}),
+            //new OpenLayers.Control.MousePosition(),
+            //new OpenLayers.Control.ScaleLine(),
+            new OpenLayers.Control.Attribution()
+            ],
+
+        //minScale: 160000,
+        minScale: 160000*2,
+        numZoomLevels: 10,
+        unit: 'degrees'
+    });
+
+    // Layers
+    // Satellite Imagery Map (default layer)
+    map.addLayer(new OpenLayers.Layer.WMS("Satellite", server + rasterLayer, 
+    {
+        layers: 'preliminarycompleted',
+        isBaseLayer: true
+    }
+    ));
+    // Brazil political borders 
+    map.addLayer(new OpenLayers.Layer.WMS("Political map", server + infoLayer, 
+    {
+        layers: 'shp_brazil',
+        transparent: true,
+    },{
+        visibility: true,
+        opacity: 0.5,
+    }
+    ));
+
+    //  Hydrography
+    map.addLayer(new OpenLayers.Layer.WMS("Hydrography", server + infoLayer, 
+    {
+        layers: 'amazonhydro',
+        transparent: true,
+    },{
+        visibility: true,
+        opacity: 0.5,
+    }
+    ));
+
+    // Indigenous reservations 
+    map.addLayer(new OpenLayers.Layer.WMS("Indigenous reserves", server + infoLayer, 
+    {
+        layers: 'shp_indigenous',
+        transparent: true,
+    },{
+        visibility: true,
+        opacity: 0.5,
+    }
+    ));
+
+    // Federal Conservation areas
+    map.addLayer(new OpenLayers.Layer.WMS("Federal Conservation Areas", server + infoLayer, 
+    {
+        layers: 'shp_conservation',
+        transparent: true,
+    },{
+        visibility: true,
+        opacity: 0.5,
+    }
+    ));
+
+
+
+    // Icon for the Deforested Area Marker 
+    var styleMapAnswerPark = new OpenLayers.StyleMap({
+        pointRadius: 15,
+        externalGraphic: 'http://forestwatchers.net/assets/static/img/mapicons/information.png'
+    });
+
+    // Black color for the path and polygon control to integrate with black controls
+    // and inverse Bootstrap color scheme
+    var styleBlack = new OpenLayers.StyleMap({
+        pointRadius: 5,
+        fillColor: "rgba(0,0,0,0.5)",
+        strokeColor: "rgba(0,0,0,1)",
+        strokeWidth: 2,
+    });
+
+
+    // Layer for placing the deforested area marker
+    answerLayer = new OpenLayers.Layer.Vector("Interesting Points", {
+        styleMap: styleMapAnswerPark,
+        //attribution: 'Marker Icons by <a href="http://mapicons.nicolasmollet.com/">Nicolas Mollet</a>'
+    });
+    map.addLayer(answerLayer);
+
+    // Layer for drawing deforested areas to review
+    areaLayer = new OpenLayers.Layer.Vector("Deforested Areas", {
+        styleMap: styleBlack
+    });
+    map.addLayer(areaLayer);
+
+
+    // Enable drag & drop in the answer Layer
+    var drag = new OpenLayers.Control.DragFeature(answerLayer);
+    // Add the drag & drop control into the map
+    map.addControl(drag);
+    // Activate drag & drop
+    drag.activate();
+
+    // Add a layer to load a box that represents the limits for the restrictedExtent
+    //map.addLayer(boxes);
+
+    // Drawing controls
+    drawControls = {
+        polygon:    new OpenLayers.Control.DrawFeature(areaLayer, 
+                                                       OpenLayers.Handler.Polygon,
+                                                       {'featureAdded': enableBtn}
+                                                      ),
+        path:       new OpenLayers.Control.DrawFeature(areaLayer, 
+                                                       OpenLayers.Handler.Path,
+                                                       {'featureAdded': enableBtn}
+                                                      ),
+        point:      new OpenLayers.Control.DrawFeature(answerLayer, 
+                                                       OpenLayers.Handler.Point,
+                                                       {'featureAdded': enableBtn}
+                                                      )
+    }
+
+    // Add them to the map
+    for (var key in drawControls) {
+        map.addControl(drawControls[key]);
+    }
+}
+
+function enableBtn() {
+    if ($("#answerbtn").hasClass("disabled")) {
+        $("#answerbtn").removeClass('disabled');
+        $("#answerbtn").show();
+        $("#answerbtn").click(submitTask);
+    }
+}
+
+// Function to enable/disable the drawing controls. Only one can be active at a time
+function toggleControl(control) {
+    for (key in drawControls) {
+        ctrl = drawControls[key];
+        if ( (control == key) && (!ctrl.active) ) {
+            ctrl.activate();
+        }
+        else {
+            ctrl.deactivate();
+        }
+    }
+}
+
+// Initialize the map
+initialize();
+
+// This function will center the map for a given tile
+function center(bounds, restrictedExtent) {
+    // bounds = [left, bottom, right, top]
+    // restrictedExtent = [left, bottom, right, top]
+    // As this action could take some time, start the spinner
+    updateBar("Loading tile...");
+    // Clean previous markers from the answer layers
+    answerLayer.removeAllFeatures();
+    areaLayer.removeAllFeatures();
+    $("#answerbtn").addClass("disabled");
+    $("#answerbtn").unbind('click',submitTask);
+    // Convert the bounds and restrictedExtent to valid OpenLayers objects
+    var b = new OpenLayers.Bounds.fromArray(bounds);
+    var r = new OpenLayers.Bounds.fromArray(restrictedExtent);
+    //var a = r.toGeometry();
+    //totalArea = (a.getGeodesicArea()/1000);
+    //console.log(totalArea);
+    // Add a box to mark in red the limited restrictedExtent
+    var box = new OpenLayers.Marker.Box(r);
+    //boxes.addMarker(box);
+    // Set limits for the map: the user should only see a small fraction of the tile
+    map.setOptions({
+        maxExtent: r,
+        restrictedExtent: r
+    })
+    map.zoomToExtent(r);
+}
+
+// Load the task data into the HTML skeleton
+function loadData (data) {
+    if ( !$.isEmptyObject(data.task) ) {
+        updateBar("Loading task data...");
+        //console.log(data);
+        $("#question h1").text(data.task.info.tile.question);
+        $("#task-id").text(data.task.id);
+        loadUserProgress();
+
+        // Center the map for this task
+        center(data.task.info.tile.bounds, data.task.info.tile.restrictedExtent);
+    }
+    else {
+        $(".skeleton").hide();
+        $("#finish").fadeIn();
+    }
+}
+
+function loadTask ( task_id ) {
+    var t = $.ajax({
+        //url: '/api/task/'+task_id,
+        url: '/pybossa/api/task/'+task_id,
+        dataType: 'json'
+    });
+
+    t.done( function (task) {
+        if ( !$.isEmptyObject(task) ) {
+            updateBar("Loading task data...");
+            if (task.state=='completed') {
+                $('#controls').hide();
+                $('#answer').hide();
+                $('#disqus_thread').hide();
+                $('#taskcompleted').show();
+            }
+            else {
+                $("#question h1").text(task.info.tile.question);
+                $("#task-id").text(task.id);
+                loadUserProgress();
+                // Center the map for this task
+                center(task.info.tile.bounds, task.info.tile.restrictedExtent);
+            }
+        }
+    });
+}
+
+
+// Uses the new API method to get a proper task to be shown!
+//pybossa.newTask('deforestedareas', 'http://forestwatchers.net/pybossa').done(function(data) { 
+//pybossa.newTask('deforestedareas').done(function(data) { 
+//    loadData(data);
+//});
+
+function loadUserProgress() {
+    pybossa.userProgress('deforestedareas', 'http://forestwatchers.net/pybossa').done(function(data){
+        var f = d3.format("2.2s");
+        $("#km").text(f(totalArea*data.done));
+        $("#co2").text(f(coTwo*totalArea*data.done));
+        var pct = Math.round((data.done*100)/data.total);
+        $("#progress").css("width", pct.toString() +"%");
+        $("#progress").attr("title", pct.toString() + "% completed!");
+        $("#progress").tooltip({'placement': 'left'}); 
+        $("#total").text(data.total);
+        $("#done").text(data.done);
+    });
+}
+
+var taskId = pybossa.getCurrentTaskId(window.location.pathname);
+
+if (taskId){
+    loadTask(taskId);
+}
+else {
+    pybossa.newTask("deforestedareas", "http://forestwatchers.net/pybossa").done( function( data ) { 
+    //pybossa.newTask("deforestedareas").done( function( data ) { 
+    //pybossa.newTask("besttile").done( function( data ) { 
+
+        if ( !$.isEmptyObject(data.task) ) {
+            window.location.pathname = "/pybossa/app/deforestedareas/task/" + data.task.id;
+            //window.location.pathname = "/app/deforestedareas/task/" + data.task.id;
+        }
+       else {
+            $(".skeleton").hide();
+            $("#finish").fadeIn();
+        }
+    });
+}
+
+// Saves the answer for the given task
+function submitTask(answer) {
+    task_id = $("#task-id").text();
+    if (answer!= 'no-deforestation') {
+        // Convert the feature location into the GeoJSON format
+        geojson = new OpenLayers.Format.GeoJSON({
+            'internalProjection': map.baseLayer.projection,
+            'externalProjection': new OpenLayers.Projection("EPSG:4326")
+            });
+        // The user can provide several answers, indicating areas, paths or even points of interest
+        // Thus, the answer is a list of GeoJSON objects
+        answer = [];
+        // Cache the number of features added to the areaLayer
+        numAnswers = areaLayer.features.length;
+        // Iterate over them, and save them into the answer list variable
+        for (i = 0; i< numAnswers; i++) {
+            answer.push(JSON.parse(geojson.write(areaLayer.features[i])));
+        }
+        // Repeat for the points area
+        numAnswers = answerLayer.features.length;
+        // Iterate over them, and save them into the answer list variable
+        for (i = 0; i< numAnswers; i++) {
+            answer.push(JSON.parse(geojson.write(answerLayer.features[i])));
+        }
+
+        pybossa.saveTask( task_id, {'deforestedareas': answer}, 'http://forestwatchers.net/pybossa').done( function(data) {
+            // Show the feedback div
+            $("#success").fadeIn(); 
+            // Fade out the pop-up after a 1000 miliseconds
+            setTimeout(function() { $("#success").fadeOut() }, 1000);
+            // Request a new task
+            //pybossa.newTask('deforestedareas', 'http://forestwatchers.net/pybossa').done( function(data) { loadData(data) });
+            window.location.pathname = '/pybossa/app/deforestedareas/newtask';
+            //window.location.pathname = '/app/deforestedareas/newtask';
+            //pybossa.newTask('deforestedareas').done( function(data) { loadData(data) });
+        });
+    }
+    else {
+        pybossa.saveTask( task_id, {'deforestedareas': answer}, 'http://forestwatchers.net/pybossa').done( function(data) {
+            // Show the feedback div
+            $("#success").fadeIn(); 
+            // Fade out the pop-up after a 1000 miliseconds
+            setTimeout(function() { $("#success").fadeOut() }, 1000);
+            // Request a new task
+            pybossa.newTask('deforestedareas', 'http://forestwatchers.net/pybossa').done( function(data) { loadData(data) });
+            //pybossa.newTask('deforestedareas').done( function(data) { loadData(data) });
+        });
+
+    }
+}
+</script>
+
