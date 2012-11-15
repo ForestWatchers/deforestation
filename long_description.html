@@ -15,3 +15,88 @@
         <p>If you finish all the tasks and you want to keep processing deforestation, <a href="http://forestwatchers.net/pybossa/app/besttile">help us to clean more tiles from the forest</a>.</p>
 </div>
 </div>
+<div class="row">
+    <div class="span12">
+        <h1>Preliminary results</h1>
+        <hr>
+    </div>
+</div>
+<div class="row">
+    <div class="span5">
+        <div id="map" style="width:400px; height:850px;border:1px solid black;"></div>
+    </div>
+    <div class="span7">
+        <p>In the following map you can see the deforestation reported by the volunteers. The map and deforested areas are updated 4 times per day.</p>
+        <p>The <strong>deforested areas</strong> are marked in red, while the <strong>interesting points</strong> are the blue icons.</p>
+        <p><span class="label label-info">Info</span> Zoom in the map in order to see more clearly the candidate deforested areas.</p>
+        <p><span class="label label-warning"><i class="icon-bullhorn"></i> Note</span> These data have not been reviewed yet. It only represents the discovered areas by the volunteers as deforested ones.</p>
+
+    </div>
+</div>
+<script src="/static/openlayers/OpenLayers.js"></script>
+<script type="text/javascript">
+     var map, layerBestTile, layerPoly, layerPoint, layerDeter, layerIntersec, vector1;
+     var mapfile = "map=/home/forestwatchers/map/maps2012.map"
+     var infofile = "map=/home/forestwatchers/map/infoshapes.map"
+     var server = "http://forestwatchers.net/cgi-bin/mapserv?"
+     var resultserver = server + mapfile
+     var infoserver = server + infofile
+
+     var point1 = new OpenLayers.Geometry.Point(-58.6, -13.2);
+     var point2 = new OpenLayers.Geometry.Point(-49.4, 5.7);
+
+     var bounds = new OpenLayers.Bounds();
+     bounds.extend(point1);
+     bounds.extend(point2);
+     bounds.toBBOX();
+     var bounds2;
+
+     function init(){
+         map = new OpenLayers.Map( 'map' );
+         layerBestTile = new OpenLayers.Layer.WMS( "Cleaned Image by Best Tile", resultserver, 
+           {
+             layers: 'preliminaryall',
+             isBaseLayer: true
+            },
+           {
+             opacity: 0.9
+           } );
+         layerPoly = new OpenLayers.Layer.WMS( "Deforestation areas", resultserver, 
+           {
+             layers: 'shapePolyDeforVol',
+             transparent: true
+            } );
+         layerPoint = new OpenLayers.Layer.WMS( "Interesting Points", resultserver, 
+           {
+             layers: 'shapePointDeforVol',
+             transparent: true
+            },
+           {
+             visibility: true
+           } );
+         vector1 = new OpenLayers.Layer.WMS( "Brazil (political map)", infoserver, 
+           {
+             layers: 'shp_brazil',
+             transparent: true
+           }, {
+             opacity: 0.4
+            } );
+         map.addLayer(layerBestTile);
+         map.addLayer(layerPoly);
+         map.addLayer(layerPoint);
+         map.addLayer(vector1);
+
+         //map.zoomToMaxExtent();
+         map.zoomToExtent(bounds);
+         map.setOptions({
+             maxExtent: bounds,
+             restrictedExtent: bounds
+         });
+         map.zoomTo(6);
+         map.addControl(new OpenLayers.Control.LayerSwitcher());
+
+     };
+
+     init();
+
+ </script>
