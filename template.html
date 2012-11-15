@@ -528,8 +528,9 @@ function submitTask(answer) {
             // Fade out the pop-up after a 1000 miliseconds
             setTimeout(function() { $("#success").fadeOut() }, 1000);
             // Request a new task
-            pybossa.newTask('deforestedareas', 'http://forestwatchers.net/pybossa').done( function(data) { loadData(data) });
+            //pybossa.newTask('deforestedareas', 'http://forestwatchers.net/pybossa').done( function(data) { loadData(data) });
             //pybossa.newTask('deforestedareas').done( function(data) { loadData(data) });
+            window.location.pathname = '/pybossa/app/deforestedareas/newtask';
         });
 
     }
