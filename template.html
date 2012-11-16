@@ -318,12 +318,14 @@ function initialize() {
     });
 
     areaLayer.events.on({
-        featurehighlighted: function(e) {
-            var remove = confirm("Are you sure you want to REMOVE this element?");
-            if (remove == true) {
-                var id = e.feature.id;
-                var feature = areaLayer.getFeatureById(id);
-                areaLayer.removeFeatures(feature);
+        featureselected: function(e) {
+            if (!drawControls['modify'].active) {
+                var remove = confirm("Are you sure you want to REMOVE this element?");
+                if (remove == true) {
+                    var id = e.feature.id;
+                    var feature = areaLayer.getFeatureById(id);
+                    areaLayer.removeFeatures(feature);
+                }
             }
         }
     });
