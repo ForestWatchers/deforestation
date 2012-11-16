@@ -126,6 +126,12 @@
         <button id="point"    class="btn btn-inverse" onClick="toggleControl('point');">
           <i class="icon icon-white icon-flag"></i> Point
         </button>
+        <button id="modify"    class="btn btn-inverse" onClick="toggleControl('modify');">
+          <i class="icon icon-white icon-edit"></i> Edit 
+        </button>
+        <button id="delete"    class="btn btn-inverse" onClick="toggleControl('delete');">
+          <i class="icon icon-white icon-trash"></i> Delete
+        </button>
       </div>
       <button id="answerbtn" class="btn btn-success" style="display:none"><i class="icon-check icon-white"></i> Save these the polygons or points</button>
         <!--<button class="btn" onclick="pybossa.newTask('deforestedareas', 'http://forestwatchers.net/pybossa').done(function(data) {loadData(data)})">Try another area</button>-->
@@ -310,6 +316,17 @@ function initialize() {
     areaLayer = new OpenLayers.Layer.Vector("Deforested Areas", {
         styleMap: styleBlack
     });
+
+    areaLayer.events.on({
+        featurehighlighted: function(e) {
+            var remove = confirm("Are you sure you want to REMOVE this element?");
+            if (remove == true) {
+                var id = e.feature.id;
+                var feature = areaLayer.getFeatureById(id);
+                areaLayer.removeFeatures(feature);
+            }
+        }
+    });
     map.addLayer(areaLayer);
 
 
@@ -329,14 +346,15 @@ function initialize() {
                                                        OpenLayers.Handler.Polygon,
                                                        {'featureAdded': enableBtn}
                                                       ),
-        path:       new OpenLayers.Control.DrawFeature(areaLayer, 
-                                                       OpenLayers.Handler.Path,
-                                                       {'featureAdded': enableBtn}
-                                                      ),
         point:      new OpenLayers.Control.DrawFeature(answerLayer, 
                                                        OpenLayers.Handler.Point,
                                                        {'featureAdded': enableBtn}
-                                                      )
+                                                      ),
+        modify:     new OpenLayers.Control.ModifyFeature(areaLayer),
+        delete:     new OpenLayers.Control.SelectFeature(areaLayer),
+    //    remove:      new OpenLayers.Control.RemoveFeature(answerLayer, 
+    //                                                   {'featureAdded': enableBtn}
+    //                                                   ),
     }
 
     // Add them to the map
@@ -344,6 +362,40 @@ function initialize() {
         map.addControl(drawControls[key]);
     }
 }
+
+OpenLayers.Event.observe(document, "keydown", function(e) {
+    var handled = false;
+    // Check with drawing control is being used:
+    var active_ctrl;
+    for (key in drawControls) {
+        ctrl = drawControls[key];
+        if ( ctrl.active ) {
+            active_ctrl = ctrl;
+        }
+    }
+
+    switch (e.keyCode) {
+        case 90: // z
+            if (e.metaKey || e.ctrlKey) {
+                active_ctrl.undo();
+                handled = true;
+            }
+            break;
+        case 89: // y
+            if (e.metaKey || e.ctrlKey) {
+                active_ctrl.redo();
+                handled = true;
+            }
+            break;
+        case 27: // esc
+            active_ctrl.cancel();
+            handled = true;
+            break;
+    }
+    if (handled) {
+        OpenLayers.Event.stop(e);
+    }
+});
 
 function enableBtn() {
     if ($("#answerbtn").hasClass("disabled")) {
@@ -355,6 +407,7 @@ function enableBtn() {
 
 // Function to enable/disable the drawing controls. Only one can be active at a time
 function toggleControl(control) {
+    console.log(control);
     for (key in drawControls) {
         ctrl = drawControls[key];
         if ( (control == key) && (!ctrl.active) ) {
