@@ -306,11 +306,11 @@ function initialize() {
 
 
     // Layer for placing the deforested area marker
-    answerLayer = new OpenLayers.Layer.Vector("Interesting Points", {
-        styleMap: styleMapAnswerPark,
-        //attribution: 'Marker Icons by <a href="http://mapicons.nicolasmollet.com/">Nicolas Mollet</a>'
-    });
-    map.addLayer(answerLayer);
+    //answerLayer = new OpenLayers.Layer.Vector("Interesting Points", {
+    //    styleMap: styleMapAnswerPark,
+    //    //attribution: 'Marker Icons by <a href="http://mapicons.nicolasmollet.com/">Nicolas Mollet</a>'
+    //});
+    //map.addLayer(answerLayer);
 
     // Layer for drawing deforested areas to review
     areaLayer = new OpenLayers.Layer.Vector("Deforested Areas", {
@@ -333,11 +333,11 @@ function initialize() {
 
 
     // Enable drag & drop in the answer Layer
-    var drag = new OpenLayers.Control.DragFeature(answerLayer);
+    //var drag = new OpenLayers.Control.DragFeature(areaLayer);
     // Add the drag & drop control into the map
-    map.addControl(drag);
+    //map.addControl(drag);
     // Activate drag & drop
-    drag.activate();
+    //drag.activate();
 
     // Add a layer to load a box that represents the limits for the restrictedExtent
     //map.addLayer(boxes);
@@ -348,15 +348,12 @@ function initialize() {
                                                        OpenLayers.Handler.Polygon,
                                                        {'featureAdded': enableBtn}
                                                       ),
-        point:      new OpenLayers.Control.DrawFeature(answerLayer, 
+        point:      new OpenLayers.Control.DrawFeature(areaLayer, 
                                                        OpenLayers.Handler.Point,
                                                        {'featureAdded': enableBtn}
                                                       ),
         modify:     new OpenLayers.Control.ModifyFeature(areaLayer),
         delete:     new OpenLayers.Control.SelectFeature(areaLayer),
-    //    remove:      new OpenLayers.Control.RemoveFeature(answerLayer, 
-    //                                                   {'featureAdded': enableBtn}
-    //                                                   ),
     }
 
     // Add them to the map
@@ -431,7 +428,7 @@ function center(bounds, restrictedExtent) {
     // As this action could take some time, start the spinner
     updateBar("Loading tile...");
     // Clean previous markers from the answer layers
-    answerLayer.removeAllFeatures();
+    //answerLayer.removeAllFeatures();
     areaLayer.removeAllFeatures();
     $("#answerbtn").addClass("disabled");
     $("#answerbtn").unbind('click',submitTask);
@@ -558,11 +555,11 @@ function submitTask(answer) {
             answer.push(JSON.parse(geojson.write(areaLayer.features[i])));
         }
         // Repeat for the points area
-        numAnswers = answerLayer.features.length;
+        //numAnswers = answerLayer.features.length;
         // Iterate over them, and save them into the answer list variable
-        for (i = 0; i< numAnswers; i++) {
-            answer.push(JSON.parse(geojson.write(answerLayer.features[i])));
-        }
+        //for (i = 0; i< numAnswers; i++) {
+        //    answer.push(JSON.parse(geojson.write(answerLayer.features[i])));
+        //}
 
         pybossa.saveTask( task_id, {'deforestedareas': answer}, 'http://forestwatchers.net/pybossa').done( function(data) {
             // Show the feedback div
