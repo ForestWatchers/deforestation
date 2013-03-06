@@ -1,2 +1,2 @@
-GDAL
+pybossa-client
 sphinx
